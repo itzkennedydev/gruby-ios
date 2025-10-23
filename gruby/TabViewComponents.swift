@@ -2160,6 +2160,7 @@ private struct MenuRowView: View {
 // MARK: - LegalInformationView
 struct LegalInformationView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedDocument: LegalDocument?
     
     var body: some View {
         NavigationView {
@@ -2180,61 +2181,19 @@ struct LegalInformationView: View {
                     
                     // Legal Sections
                     VStack(spacing: 24) {
-                        LegalSectionCard(
-                            title: "Terms of Service",
-                            description: "User agreement, platform rules, and service conditions",
-                            lastUpdated: "December 2024",
-                            icon: "doc.plaintext.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Privacy Policy",
-                            description: "Data collection, usage, and protection practices",
-                            lastUpdated: "December 2024",
-                            icon: "hand.raised.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Cookie Policy",
-                            description: "Cookie usage, tracking, and user preferences",
-                            lastUpdated: "December 2024",
-                            icon: "cookie.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Data Protection Rights",
-                            description: "GDPR, CCPA, and user data rights information",
-                            lastUpdated: "December 2024",
-                            icon: "shield.lefthalf.filled"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Community Guidelines",
-                            description: "Platform rules, conduct standards, and enforcement",
-                            lastUpdated: "December 2024",
-                            icon: "person.3.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Food Safety Standards",
-                            description: "Health regulations, safety requirements, and compliance",
-                            lastUpdated: "December 2024",
-                            icon: "checkmark.shield.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Intellectual Property",
-                            description: "Copyright, trademark, and content ownership policies",
-                            lastUpdated: "December 2024",
-                            icon: "c.circle.fill"
-                        )
-                        
-                        LegalSectionCard(
-                            title: "Dispute Resolution",
-                            description: "Conflict resolution, arbitration, and legal procedures",
-                            lastUpdated: "December 2024",
-                            icon: "scale.3d"
-                        )
+                        ForEach(LegalDocument.allCases, id: \.self) { document in
+                            Button(action: {
+                                selectedDocument = document
+                            }) {
+                                LegalSectionCard(
+                                    title: document.title,
+                                    description: document.description,
+                                    lastUpdated: document.lastUpdated,
+                                    icon: document.icon
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
                     }
                     .padding(.horizontal, 20)
                     
@@ -2278,6 +2237,9 @@ struct LegalInformationView: View {
                     }
                     .foregroundColor(.black)
                 }
+            }
+            .sheet(item: $selectedDocument) { document in
+                LegalDocumentView(document: document)
             }
         }
     }
@@ -2359,6 +2321,723 @@ private struct ContactInfoRow: View {
         .padding(16)
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - LegalDocument
+enum LegalDocument: String, CaseIterable, Identifiable {
+    case termsOfService = "terms"
+    case privacyPolicy = "privacy"
+    case cookiePolicy = "cookies"
+    case dataProtection = "data-protection"
+    case communityGuidelines = "community"
+    case foodSafety = "food-safety"
+    case intellectualProperty = "ip"
+    case disputeResolution = "disputes"
+    
+    var id: String { rawValue }
+    
+    var title: String {
+        switch self {
+        case .termsOfService: return "Terms of Service"
+        case .privacyPolicy: return "Privacy Policy"
+        case .cookiePolicy: return "Cookie Policy"
+        case .dataProtection: return "Data Protection Rights"
+        case .communityGuidelines: return "Community Guidelines"
+        case .foodSafety: return "Food Safety Standards"
+        case .intellectualProperty: return "Intellectual Property"
+        case .disputeResolution: return "Dispute Resolution"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .termsOfService: return "User agreement, platform rules, and service conditions"
+        case .privacyPolicy: return "Data collection, usage, and protection practices"
+        case .cookiePolicy: return "Cookie usage, tracking, and user preferences"
+        case .dataProtection: return "GDPR, CCPA, and user data rights information"
+        case .communityGuidelines: return "Platform rules, conduct standards, and enforcement"
+        case .foodSafety: return "Health regulations, safety requirements, and compliance"
+        case .intellectualProperty: return "Copyright, trademark, and content ownership policies"
+        case .disputeResolution: return "Conflict resolution, arbitration, and legal procedures"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .termsOfService: return "doc.plaintext.fill"
+        case .privacyPolicy: return "hand.raised.fill"
+        case .cookiePolicy: return "cookie.fill"
+        case .dataProtection: return "shield.lefthalf.filled"
+        case .communityGuidelines: return "person.3.fill"
+        case .foodSafety: return "checkmark.shield.fill"
+        case .intellectualProperty: return "c.circle.fill"
+        case .disputeResolution: return "scale.3d"
+        }
+    }
+    
+    var lastUpdated: String {
+        return "December 2024"
+    }
+}
+
+// MARK: - LegalDocumentView
+struct LegalDocumentView: View {
+    let document: LegalDocument
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 12) {
+                            Image(systemName: document.icon)
+                                .font(.system(size: 24, weight: .regular))
+                                .foregroundColor(AppColors.primaryColor)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(document.title)
+                                    .font(.system(size: 24, weight: .semibold))
+                                    .foregroundColor(.black)
+                                
+                                Text("Last updated: \(document.lastUpdated)")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    
+                    // Content
+                    VStack(alignment: .leading, spacing: 20) {
+                        switch document {
+                        case .termsOfService:
+                            TermsOfServiceContent()
+                        case .privacyPolicy:
+                            PrivacyPolicyContent()
+                        case .cookiePolicy:
+                            CookiePolicyContent()
+                        case .dataProtection:
+                            DataProtectionContent()
+                        case .communityGuidelines:
+                            CommunityGuidelinesContent()
+                        case .foodSafety:
+                            FoodSafetyContent()
+                        case .intellectualProperty:
+                            IntellectualPropertyContent()
+                        case .disputeResolution:
+                            DisputeResolutionContent()
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 40)
+                }
+            }
+            .background(Color.white)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                    .foregroundColor(.black)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Terms of Service Content
+private struct TermsOfServiceContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Acceptance of Terms") {
+                Text("By accessing and using the Gruby platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.")
+            }
+            
+            LegalSection(title: "2. Description of Service") {
+                Text("Gruby is a food sharing platform that connects home chefs with food lovers. Our service allows users to discover, order, and enjoy homemade meals from verified local chefs.")
+            }
+            
+            LegalSection(title: "3. User Accounts") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• You must be at least 18 years old to create an account")
+                    Text("• You are responsible for maintaining the confidentiality of your account")
+                    Text("• You agree to provide accurate and complete information")
+                    Text("• You are responsible for all activities under your account")
+                }
+            }
+            
+            LegalSection(title: "4. Host Verification") {
+                Text("All hosts must complete our verification process, including background checks, kitchen inspections, and food safety certifications. We reserve the right to approve or deny host applications at our discretion.")
+            }
+            
+            LegalSection(title: "5. Food Safety and Liability") {
+                Text("Hosts are responsible for food safety and compliance with local health regulations. Gruby provides a platform but does not guarantee food safety. Users consume food at their own risk.")
+            }
+            
+            LegalSection(title: "6. Payment Terms") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• All payments are processed securely through our platform")
+                    Text("• Prices are set by hosts and may include service fees")
+                    Text("• Refunds are subject to our refund policy")
+                    Text("• We may suspend accounts for payment issues")
+                }
+            }
+            
+            LegalSection(title: "7. Prohibited Activities") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Selling alcohol without proper licensing")
+                    Text("• Misrepresenting food ingredients or allergens")
+                    Text("• Harassment or inappropriate behavior")
+                    Text("• Violating local health regulations")
+                    Text("• Using the platform for illegal activities")
+                }
+            }
+            
+            LegalSection(title: "8. Intellectual Property") {
+                Text("All content on the platform, including but not limited to text, graphics, logos, and software, is the property of Gruby or its licensors and is protected by copyright and other intellectual property laws.")
+            }
+            
+            LegalSection(title: "9. Termination") {
+                Text("We may terminate or suspend your account at any time for violations of these terms. You may terminate your account at any time by contacting our support team.")
+            }
+            
+            LegalSection(title: "10. Limitation of Liability") {
+                Text("Gruby shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or use, arising out of or relating to your use of the platform.")
+            }
+            
+            LegalSection(title: "11. Governing Law") {
+                Text("These terms are governed by the laws of California, United States. Any disputes will be resolved in the courts of San Francisco, California.")
+            }
+            
+            LegalSection(title: "12. Changes to Terms") {
+                Text("We reserve the right to modify these terms at any time. We will notify users of significant changes via email or platform notification. Continued use constitutes acceptance of modified terms.")
+            }
+        }
+    }
+}
+
+// MARK: - Privacy Policy Content
+private struct PrivacyPolicyContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Information We Collect") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Personal Information:")
+                    Text("• Name, email address, phone number")
+                    Text("• Profile information and preferences")
+                    Text("• Payment information (processed securely)")
+                    Text("• Location data (with your consent)")
+                    
+                    Text("\nUsage Information:")
+                    Text("• App usage patterns and interactions")
+                    Text("• Device information and IP address")
+                    Text("• Communication records")
+                    Text("• Order history and preferences")
+                }
+            }
+            
+            LegalSection(title: "2. How We Use Your Information") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Provide and improve our services")
+                    Text("• Process orders and payments")
+                    Text("• Verify host credentials and safety")
+                    Text("• Communicate with you about orders")
+                    Text("• Send marketing communications (with consent)")
+                    Text("• Ensure platform safety and security")
+                }
+            }
+            
+            LegalSection(title: "3. Information Sharing") {
+                Text("We do not sell your personal information. We may share information with:")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Service providers (payment processors, delivery partners)")
+                    Text("• Law enforcement (when legally required)")
+                    Text("• Other users (only as necessary for orders)")
+                    Text("• Business partners (with your consent)")
+                }
+            }
+            
+            LegalSection(title: "4. Data Security") {
+                Text("We implement industry-standard security measures to protect your information, including encryption, secure servers, and regular security audits. However, no method of transmission over the internet is 100% secure.")
+            }
+            
+            LegalSection(title: "5. Your Rights") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Access your personal information")
+                    Text("• Correct inaccurate information")
+                    Text("• Delete your account and data")
+                    Text("• Opt out of marketing communications")
+                    Text("• Data portability (GDPR)")
+                    Text("• Withdraw consent at any time")
+                }
+            }
+            
+            LegalSection(title: "6. Cookies and Tracking") {
+                Text("We use cookies and similar technologies to enhance your experience, analyze usage patterns, and provide personalized content. You can control cookie preferences in your browser settings.")
+            }
+            
+            LegalSection(title: "7. Third-Party Services") {
+                Text("Our platform may integrate with third-party services for payments, maps, and communications. These services have their own privacy policies, and we encourage you to review them.")
+            }
+            
+            LegalSection(title: "8. Children's Privacy") {
+                Text("Our service is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we become aware of such collection, we will delete the information immediately.")
+            }
+            
+            LegalSection(title: "9. International Transfers") {
+                Text("Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for international data transfers.")
+            }
+            
+            LegalSection(title: "10. Data Retention") {
+                Text("We retain your information for as long as necessary to provide our services and comply with legal obligations. Account deletion requests will be processed within 30 days.")
+            }
+            
+            LegalSection(title: "11. Contact Us") {
+                Text("For privacy-related questions or requests, contact us at privacy@gruby.com or use our in-app support system.")
+            }
+        }
+    }
+}
+
+// MARK: - Cookie Policy Content
+private struct CookiePolicyContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. What Are Cookies") {
+                Text("Cookies are small text files stored on your device when you visit our website or use our app. They help us provide a better experience and understand how you use our platform.")
+            }
+            
+            LegalSection(title: "2. Types of Cookies We Use") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Essential Cookies:")
+                    Text("• Required for basic platform functionality")
+                    Text("• Authentication and security")
+                    Text("• Cannot be disabled")
+                    
+                    Text("\nAnalytics Cookies:")
+                    Text("• Help us understand usage patterns")
+                    Text("• Improve platform performance")
+                    Text("• Anonymous data collection")
+                    
+                    Text("\nMarketing Cookies:")
+                    Text("• Personalized content and ads")
+                    Text("• Social media integration")
+                    Text("• Can be disabled in settings")
+                }
+            }
+            
+            LegalSection(title: "3. How We Use Cookies") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Remember your login status")
+                    Text("• Store your preferences and settings")
+                    Text("• Analyze platform usage and performance")
+                    Text("• Provide personalized recommendations")
+                    Text("• Ensure platform security")
+                    Text("• Enable social media features")
+                }
+            }
+            
+            LegalSection(title: "4. Third-Party Cookies") {
+                Text("We may use third-party services that set their own cookies, including:")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Google Analytics (usage analytics)")
+                    Text("• Payment processors (transaction security)")
+                    Text("• Social media platforms (sharing features)")
+                    Text("• Advertising networks (personalized ads)")
+                }
+            }
+            
+            LegalSection(title: "5. Managing Cookies") {
+                Text("You can control cookies through:")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Browser settings (disable/enable cookies)")
+                    Text("• Our app privacy settings")
+                    Text("• Third-party opt-out tools")
+                    Text("• Contact us for assistance")
+                }
+            }
+            
+            LegalSection(title: "6. Impact of Disabling Cookies") {
+                Text("Disabling certain cookies may affect platform functionality, including login persistence, personalized content, and some features may not work properly.")
+            }
+        }
+    }
+}
+
+// MARK: - Data Protection Content
+private struct DataProtectionContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Your Data Rights (GDPR)") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Right of Access:")
+                    Text("• Request copies of your personal data")
+                    Text("• Information about how we use your data")
+                    
+                    Text("\nRight to Rectification:")
+                    Text("• Correct inaccurate personal data")
+                    Text("• Update incomplete information")
+                    
+                    Text("\nRight to Erasure:")
+                    Text("• Delete your personal data")
+                    Text("• 'Right to be forgotten'")
+                    
+                    Text("\nRight to Portability:")
+                    Text("• Receive your data in a structured format")
+                    Text("• Transfer data to another service")
+                }
+            }
+            
+            LegalSection(title: "2. Your Data Rights (CCPA)") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Right to Know:")
+                    Text("• What personal information we collect")
+                    Text("• How we use and share your information")
+                    
+                    Text("\nRight to Delete:")
+                    Text("• Request deletion of personal information")
+                    Text("• Subject to certain exceptions")
+                    
+                    Text("\nRight to Opt-Out:")
+                    Text("• Opt out of sale of personal information")
+                    Text("• We do not sell personal information")
+                    
+                    Text("\nRight to Non-Discrimination:")
+                    Text("• Equal service regardless of privacy choices")
+                }
+            }
+            
+            LegalSection(title: "3. Data Processing Lawful Basis") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Consent: Marketing communications")
+                    Text("• Contract: Service provision and orders")
+                    Text("• Legal obligation: Tax and regulatory compliance")
+                    Text("• Legitimate interests: Platform security and improvement")
+                }
+            }
+            
+            LegalSection(title: "4. Data Security Measures") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Encryption of data in transit and at rest")
+                    Text("• Regular security assessments and updates")
+                    Text("• Access controls and authentication")
+                    Text("• Staff training on data protection")
+                    Text("• Incident response procedures")
+                }
+            }
+            
+            LegalSection(title: "5. Data Breach Notification") {
+                Text("In the event of a data breach that poses a risk to your rights and freedoms, we will notify you and relevant authorities within 72 hours, as required by law.")
+            }
+            
+            LegalSection(title: "6. Data Protection Officer") {
+                Text("Our Data Protection Officer can be contacted at dpo@gruby.com for any data protection inquiries or concerns.")
+            }
+            
+            LegalSection(title: "7. Supervisory Authority") {
+                Text("You have the right to lodge a complaint with your local data protection authority if you believe we have not handled your personal data in accordance with applicable laws.")
+            }
+        }
+    }
+}
+
+// MARK: - Community Guidelines Content
+private struct CommunityGuidelinesContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Respectful Communication") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Use respectful and courteous language")
+                    Text("• Avoid harassment, bullying, or intimidation")
+                    Text("• Respect cultural differences and dietary restrictions")
+                    Text("• Communicate clearly about food ingredients and allergens")
+                    Text("• Provide constructive feedback")
+                }
+            }
+            
+            LegalSection(title: "2. Food Safety Standards") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Follow proper food handling procedures")
+                    Text("• Maintain clean cooking environments")
+                    Text("• Accurately describe ingredients and allergens")
+                    Text("• Comply with local health regulations")
+                    Text("• Use fresh, quality ingredients")
+                }
+            }
+            
+            LegalSection(title: "3. Prohibited Content") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Alcohol sales without proper licensing")
+                    Text("• Misleading food descriptions")
+                    Text("• Inappropriate or offensive content")
+                    Text("• Spam or promotional content")
+                    Text("• Copyright infringement")
+                }
+            }
+            
+            LegalSection(title: "4. Host Responsibilities") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Maintain verified status and certifications")
+                    Text("• Provide accurate food descriptions")
+                    Text("• Meet delivery/pickup commitments")
+                    Text("• Respond to customer inquiries promptly")
+                    Text("• Follow all applicable laws and regulations")
+                }
+            }
+            
+            LegalSection(title: "5. Customer Responsibilities") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Provide accurate delivery information")
+                    Text("• Respect host's time and effort")
+                    Text("• Communicate dietary restrictions clearly")
+                    Text("• Provide honest reviews and feedback")
+                    Text("• Follow pickup/delivery instructions")
+                }
+            }
+            
+            LegalSection(title: "6. Reporting Violations") {
+                Text("Report violations of these guidelines through our in-app reporting system or by contacting support@gruby.com. All reports are reviewed and investigated promptly.")
+            }
+            
+            LegalSection(title: "7. Enforcement Actions") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Warning notifications for minor violations")
+                    Text("• Temporary account restrictions")
+                    Text("• Permanent account suspension for serious violations")
+                    Text("• Legal action for illegal activities")
+                }
+            }
+            
+            LegalSection(title: "8. Appeals Process") {
+                Text("If you believe an enforcement action was taken in error, you may appeal by contacting our support team with detailed information about your case.")
+            }
+        }
+    }
+}
+
+// MARK: - Food Safety Content
+private struct FoodSafetyContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Food Handling Requirements") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Wash hands thoroughly before cooking")
+                    Text("• Use clean utensils and equipment")
+                    Text("• Maintain proper food temperatures")
+                    Text("• Separate raw and cooked foods")
+                    Text("• Store food at appropriate temperatures")
+                }
+            }
+            
+            LegalSection(title: "2. Allergen Management") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Clearly label all major allergens")
+                    Text("• Prevent cross-contamination")
+                    Text("• Use separate utensils for allergen-free foods")
+                    Text("• Inform customers of potential allergens")
+                    Text("• Follow FDA allergen labeling requirements")
+                }
+            }
+            
+            LegalSection(title: "3. Kitchen Sanitation") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Regular cleaning and sanitizing")
+                    Text("• Proper waste disposal")
+                    Text("• Pest control measures")
+                    Text("• Clean water supply")
+                    Text("• Adequate ventilation")
+                }
+            }
+            
+            LegalSection(title: "4. Temperature Control") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Hot foods: 140°F or above")
+                    Text("• Cold foods: 40°F or below")
+                    Text("• Proper cooling procedures")
+                    Text("• Temperature monitoring")
+                    Text("• Safe reheating practices")
+                }
+            }
+            
+            LegalSection(title: "5. Certification Requirements") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Food Handler's Certificate (required)")
+                    Text("• ServSafe certification (preferred)")
+                    Text("• Local health department permits")
+                    Text("• Business license (where required)")
+                    Text("• Insurance coverage")
+                }
+            }
+            
+            LegalSection(title: "6. Inspection and Compliance") {
+                Text("All host kitchens must pass our safety inspection and comply with local health department regulations. Regular re-inspections may be required.")
+            }
+            
+            LegalSection(title: "7. Incident Reporting") {
+                Text("Any food safety incidents must be reported immediately to Gruby and local health authorities. We maintain records of all safety incidents and corrective actions.")
+            }
+            
+            LegalSection(title: "8. Training Requirements") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Food safety training completion")
+                    Text("• Regular refresher courses")
+                    Text("• Emergency procedures training")
+                    Text("• Allergen awareness training")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Intellectual Property Content
+private struct IntellectualPropertyContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Gruby's Intellectual Property") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Platform software and technology")
+                    Text("• Gruby trademarks and logos")
+                    Text("• Platform design and user interface")
+                    Text("• Proprietary algorithms and processes")
+                    Text("• Marketing materials and content")
+                }
+            }
+            
+            LegalSection(title: "2. User-Generated Content") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• You retain ownership of your content")
+                    Text("• You grant us license to use your content on the platform")
+                    Text("• You represent that you have rights to your content")
+                    Text("• You will not infringe others' intellectual property")
+                    Text("• We may remove infringing content")
+                }
+            }
+            
+            LegalSection(title: "3. Copyright Protection") {
+                Text("All content on the platform is protected by copyright law. Unauthorized reproduction, distribution, or modification is prohibited and may result in legal action.")
+            }
+            
+            LegalSection(title: "4. Trademark Usage") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Gruby trademarks may not be used without permission")
+                    Text("• Hosts may not use Gruby branding inappropriately")
+                    Text("• Third-party trademarks must be respected")
+                    Text("• Report trademark violations to legal@gruby.com")
+                }
+            }
+            
+            LegalSection(title: "5. DMCA Compliance") {
+                Text("We comply with the Digital Millennium Copyright Act (DMCA). Copyright holders may submit takedown notices to legal@gruby.com. We will respond promptly to valid notices.")
+            }
+            
+            LegalSection(title: "6. Fair Use") {
+                Text("Limited use of copyrighted material for criticism, comment, news reporting, teaching, scholarship, or research may be permitted under fair use doctrine.")
+            }
+            
+            LegalSection(title: "7. Third-Party Content") {
+                Text("We respect third-party intellectual property rights. Users must not upload content that infringes others' rights. We may remove infringing content and suspend accounts.")
+            }
+            
+            LegalSection(title: "8. License to Use Platform") {
+                Text("We grant you a limited, non-exclusive, non-transferable license to use our platform for its intended purpose. This license may be terminated for violations of these terms.")
+            }
+        }
+    }
+}
+
+// MARK: - Dispute Resolution Content
+private struct DisputeResolutionContent: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            LegalSection(title: "1. Informal Resolution") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Contact support@gruby.com first")
+                    Text("• Provide detailed information about the dispute")
+                    Text("• Allow 30 days for resolution attempts")
+                    Text("• Document all communications")
+                    Text("• Be willing to compromise")
+                }
+            }
+            
+            LegalSection(title: "2. Mediation Process") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• If informal resolution fails, mediation is required")
+                    Text("• Mediation costs shared equally")
+                    Text("• Neutral third-party mediator")
+                    Text("• Confidential process")
+                    Text("• Non-binding recommendations")
+                }
+            }
+            
+            LegalSection(title: "3. Arbitration Agreement") {
+                Text("Any disputes not resolved through mediation will be resolved through binding arbitration administered by the American Arbitration Association (AAA) under its Commercial Arbitration Rules.")
+            }
+            
+            LegalSection(title: "4. Arbitration Procedures") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("• Single arbitrator unless parties agree otherwise")
+                    Text("• Arbitration in San Francisco, California")
+                    Text("• English language proceedings")
+                    Text("• Limited discovery process")
+                    Text("• Binding and final decision")
+                }
+            }
+            
+            LegalSection(title: "5. Class Action Waiver") {
+                Text("You agree to resolve disputes individually and waive the right to participate in class action lawsuits or class-wide arbitration against Gruby.")
+            }
+            
+            LegalSection(title: "6. Small Claims Court") {
+                Text("Either party may bring individual claims in small claims court if the dispute qualifies for small claims jurisdiction and the claim is not subject to arbitration.")
+            }
+            
+            LegalSection(title: "7. Injunctive Relief") {
+                Text("Either party may seek injunctive relief in court to prevent irreparable harm while arbitration is pending, without waiving the right to arbitration.")
+            }
+            
+            LegalSection(title: "8. Governing Law") {
+                Text("These dispute resolution procedures are governed by California law, regardless of conflict of law principles.")
+            }
+            
+            LegalSection(title: "9. Severability") {
+                Text("If any provision of this dispute resolution section is found unenforceable, the remaining provisions will remain in full force and effect.")
+            }
+            
+            LegalSection(title: "10. Survival") {
+                Text("The dispute resolution provisions survive termination of your account and these terms.")
+            }
+        }
+    }
+}
+
+// MARK: - LegalSection Helper
+private struct LegalSection<Content: View>: View {
+    let title: String
+    let content: Content
+    
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.black)
+            
+            content
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(.secondary)
+                .lineSpacing(2)
+        }
     }
 }
 
