@@ -40,7 +40,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             // Grub Tab
-            Tab("Grub", systemImage: "list.bullet") {
+            Tab("Grub", systemImage: "fork.knife") {
                 GrubMainView()
                     .searchable(text: $searchText, prompt: "Search for meals, chefs, cuisines...")
             }
